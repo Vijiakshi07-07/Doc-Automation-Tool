@@ -134,6 +134,66 @@ def main():
     for entry in glossary:
         print(f"  {entry}")
 
+def find_screenshots(filepath):
+    """
+    Find all paragraphs that look like screenshot placeholders.
+    These are bold/italic paragraphs containing [SCREENSHOT: ...]
+    Also detects paragraphs just before an image (inline shapes).
+    Returns a list of dicts with context information.
+    """
+    from docx import Document as DocxDocument
+    doc = DocxDocument(filepath)
+
+    screenshots = []
+    paragraphs = list(doc.paragraphs)
+
+    for i, para in enumerate(paragraphs):
+        # Check if paragraph contains a screenshot placeholder
+        if '[SCREENSHOT:' in para.text or '[IMAGE:' in para.text:
+            # Get surrounding context — paragraph before this one
+            context = paragraphs[i-1].text if i > 0 else ""
+            screenshots.append({
+                "index": i,
+                "placeholder": para.text,
+                "context": context,
+                "type": "screenshot"
+            })
+
+    return screenshots
+
+
+def find_tables(filepath):
+    """
+    Find all tables in the document.
+    For each table, get the paragraph just before it as context.
+    Returns a list of dicts with context information.
+    """
+    from docx import Document as DocxDocument
+    doc = DocxDocument(filepath)
+
+    tables_info = []
+    paragraphs = list(doc.paragraphs)
+
+    for i, table in enumerate(doc.tables):
+        # Get the text from the first row as a preview
+        first_row = [cell.text for cell in table.rows[0].cells]
+        preview = " | ".join(first_row)
+
+        # Find context — look for paragraphs before the table
+        # We use the last paragraph before the table as context
+        context = paragraphs[-1].text if paragraphs else ""
+        for para in paragraphs:
+            if para.text.strip() and "screenshot" not in para.text.lower():
+                context = para.text
+
+        tables_info.append({
+            "index": i,
+            "preview": preview,
+            "context": context,
+            "type": "table"
+        })
+
+    return tables_info
 
 if __name__ == "__main__":
     main()
