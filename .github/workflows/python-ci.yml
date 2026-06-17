@@ -1,9 +1,9 @@
--name : Python-ci
+name : Python-ci
 jobs:
   
   on: 
-    post:
-    pull-request: 
+    push:
+    pull_request: 
     
     
 
