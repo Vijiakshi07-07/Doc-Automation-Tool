@@ -1,0 +1,33 @@
+-name : Python-ci
+jobs:
+  
+  on: 
+    post:
+    pull-request: 
+    
+    
+
+  build:
+    runs-on : ubuntu-latest
+    steps: 
+      -name: checkout repository
+      uses: actions/checkout@v4
+
+      -name : install Python
+      uses: actions/setup-python@v5
+      with: 
+        python-version: 3.12
+      
+
+      -name : Install dependencies
+      run : |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+      -name : Run the files
+      run : |
+        python -m py_compile app.py
+        python -m py_compile main.py
+
+
+
